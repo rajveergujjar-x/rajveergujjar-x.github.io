@@ -1,60 +1,38 @@
-// script.js
 
-// Function to toggle theme
-function toggleTheme() {
-  const body = document.body;
-  const logo = document.getElementById('logo');
-  const themeIcon = document.getElementById('theme-icon');
+const textArray = ["Frontend Developer", "UI/UX Designer"];
+const typedTextSpan = document.querySelector(".typed-text");
+const cursorSpan = document.querySelector(".cursor");
 
-  if (body.classList.contains('dark-mode')) {
-    // Switch to light mode
-    body.classList.remove('dark-mode');
-    // Update logo for light mode (assuming you have a light theme logo)
-    if (logo) logo.src = 'assets/images/light-theme-logo.png'; // Check if logo exists
-    if (themeIcon) themeIcon.src = 'assets/icons/moon.svg'; // Change to moon icon for light mode
-    localStorage.setItem('theme', 'light');
+let textArrayIndex = 0;
+let charIndex = 0;
+
+function type() {
+  if (charIndex < textArray[textArrayIndex].length) {
+    typedTextSpan.textContent += textArray[textArrayIndex].charAt(charIndex);
+    charIndex++;
+    setTimeout(type, 300); // Typing speed
   } else {
-    // Switch to dark mode
-    body.classList.add('dark-mode');
-    // Update logo for dark mode
-    if (logo) logo.src = 'assets/images/dark-theme-logo.png'; // Check if logo exists
-    if (themeIcon) themeIcon.src = 'assets/icons/sun.svg'; // Change to sun icon for dark mode
-    localStorage.setItem('theme', 'dark');
+    setTimeout(erase, 500); // Wait before erasing
   }
 }
 
-// Function to set theme on page load
-function setThemeOnLoad() {
-  const savedTheme = localStorage.getItem('theme');
-  const body = document.body;
-  const logo = document.getElementById('logo');
-  const themeIcon = document.getElementById('theme-icon');
-
-  if (savedTheme === 'light') {
-    body.classList.remove('dark-mode');
-    if (logo) logo.src = 'assets/images/light-theme-logo.png';
-    if (themeIcon) themeIcon.src = 'assets/icons/moon.svg';
+function erase() {
+  if (charIndex > 0) {
+    typedTextSpan.textContent = textArray[textArrayIndex].substring(0, charIndex - 1);
+    charIndex--;
+    setTimeout(erase, 50); // Erase speed
   } else {
-    // Default to dark mode if no theme saved or saved theme is 'dark'
-    body.classList.add('dark-mode');
-    if (logo) logo.src = 'assets/images/dark-theme-logo.png';
-    if (themeIcon) themeIcon.src = 'assets/icons/sun.svg';
-  }
-
-  // --- NEW: Handle initial fade-in on page load for the overlay ---
-  const overlay = document.querySelector('.page-transition-overlay');
-  if (overlay) {
-    // If the page just loaded, and we were animating, the overlay is currently full opacity.
-    // Remove the active class after a very short delay to start the fade-out.
-    // This makes the incoming page appear to "fade in"
-    setTimeout(() => {
-      document.body.classList.remove('page-transition-active');
-    }, 50); // Small delay to ensure CSS applied before removal
+    textArrayIndex++;
+    if (textArrayIndex >= textArray.length) textArrayIndex = 0;
+    setTimeout(type, 500); // Wait before typing next
   }
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  if (textArray.length) setTimeout(type, 500);
+});
 
-// --- About Popup Functionality ---
+
 const aboutPopupOverlay = document.querySelector('.about-popup-overlay');
 const closePopupButton = document.querySelector('.close-popup');
 
@@ -88,23 +66,34 @@ if (aboutPopupOverlay) {
 }
 
 
-// --- NEW: Page Transition Logic for "My Projects" button ---
-// This ensures the animation plays before navigation on index.html
-const projectsButton = document.querySelector('.projects-button');
+document.addEventListener('DOMContentLoaded', function () {
+  const hamburgerMenu = document.querySelector('.hamburger-menu');
+  const offCanvasMenu = document.querySelector('.off-canvas-menu');
+  const navLinks = document.querySelectorAll('.off-canvas-menu a'); // Select links in the off-canvas menu
 
-if (projectsButton) { // Ensure the button exists (it's only on index.html)
-  projectsButton.addEventListener('click', function (e) {
-    e.preventDefault(); // Prevent default link behavior (immediate navigation)
-
-    const targetUrl = this.href; // Get the URL from the button's href
-    document.body.classList.add('page-transition-active'); // Add class to body to trigger fade-out
-
-    // After the animation duration (400ms from CSS), navigate to the new page
-    setTimeout(() => {
-      window.location.href = targetUrl;
-    }, 400); // This duration must match the CSS transition duration
+  hamburgerMenu.addEventListener('click', function () {
+    hamburgerMenu.classList.toggle('active');
+    offCanvasMenu.classList.toggle('active');
+    // Prevent body scrolling when the menu is open
+    document.body.classList.toggle('no-scroll');
   });
-}
 
-// Call setThemeOnLoad when the DOM is fully loaded on both pages
-document.addEventListener('DOMContentLoaded', setThemeOnLoad);
+  // Close the off-canvas menu when a link is clicked
+  navLinks.forEach(link => {
+    link.addEventListener('click', function () {
+      hamburgerMenu.classList.remove('active');
+      offCanvasMenu.classList.remove('active');
+      document.body.classList.remove('no-scroll');
+    });
+  });
+
+  // Optional: Close menu if clicking outside (simple version)
+  // You might need a more robust solution for complex layouts
+  document.addEventListener('click', function (event) {
+    if (!offCanvasMenu.contains(event.target) && !hamburgerMenu.contains(event.target) && offCanvasMenu.classList.contains('active')) {
+      hamburgerMenu.classList.remove('active');
+      offCanvasMenu.classList.remove('active');
+      document.body.classList.remove('no-scroll');
+    }
+  });
+});
